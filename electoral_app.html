@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análisis Elecciones Generales</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 40px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 28px;
+            color: #222;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        .load-status {
+            font-size: 12px;
+            color: #999;
+            margin-top: 15px;
+        }
+
+        .load-status.error {
+            color: #d32f2f;
+            font-weight: 600;
+        }
+
+        .load-status.success {
+            color: #2e7d32;
+            font-weight: 600;
+        }
+
+        .province-selector {
+            margin-bottom: 40px;
+        }
+
+        .province-selector label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .province-selector select {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            cursor: pointer;
+            background-color: white;
+        }
+
+        .province-selector select:focus {
+            outline: none;
+            border-color: #0066cc;
+            box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+        }
+
+        .data-info {
+            background-color: #f9f9f9;
+            border-left: 4px solid #999;
+            padding: 12px 16px;
+            margin-bottom: 30px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .data-status {
+            display: inline-block;
+            margin-left: 10px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .data-status.verified {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .data-status.estimated {
+            background-color: #fff3e0;
+            color: #e65100;
+        }
+
+        .results-section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #222;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .bloc {
+            margin-bottom: 30px;
+            padding: 20px;
+            border-radius: 6px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .bloc.right {
+            background-color: #fff3f3;
+            border-left: 4px solid #d32f2f;
+        }
+
+        .bloc.left {
+            background-color: #f3f7ff;
+            border-left: 4px solid #0066cc;
+        }
+
+        .bloc.independent {
+            background-color: #f9f9f9;
+            border-left: 4px solid #999;
+        }
+
+        .bloc-title {
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 12px;
+            color: #222;
+        }
+
+        .bloc-stats {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .bloc-info {
+            flex: 1;
+        }
+
+        .seats-badge {
+            background-color: rgba(0,0,0,0.1);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 18px;
+            color: #222;
+        }
+
+        .bloc-detail {
+            font-size: 12px;
+            color: #666;
+            margin-top: 8px;
+        }
+
+        .ranking {
+            margin-bottom: 30px;
+        }
+
+        .ranking-item {
+            background-color: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .ranking-item.leader {
+            background-color: #f0f8ff;
+            border-color: #0066cc;
+        }
+
+        .ranking-position {
+            display: inline-block;
+            background-color: #e0e0e0;
+            color: #222;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 32px;
+            font-weight: 600;
+            margin-right: 12px;
+        }
+
+        .ranking-item.leader .ranking-position {
+            background-color: #0066cc;
+            color: white;
+        }
+
+        .ranking-party {
+            flex: 1;
+            margin-left: 12px;
+        }
+
+        .ranking-party-name {
+            font-weight: 600;
+            color: #222;
+            margin-bottom: 4px;
+        }
+
+        .ranking-party-quotient {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .ranking-votes {
+            text-align: right;
+        }
+
+        .votes-needed {
+            font-weight: 600;
+            font-size: 16px;
+            color: #222;
+        }
+
+        .votes-label {
+            font-size: 11px;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        .leader-badge {
+            display: inline-block;
+            background-color: #0066cc;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .explanation {
+            background-color: #f0f8ff;
+            border-left: 4px solid #0066cc;
+            padding: 16px;
+            margin-top: 30px;
+            font-size: 13px;
+            color: #444;
+            line-height: 1.7;
+        }
+
+        .explanation strong {
+            color: #0066cc;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Análisis Elecciones Generales</h1>
+            <p class="subtitle">Descubre cuántos votos necesita el bloque centro-izquierda para arrebatar escaños a la derecha</p>
+            <div class="load-status" id="load-status"></div>
+        </header>
+
+        <div class="province-selector">
+            <label for="province">Selecciona una provincia:</label>
+            <select id="province" onchange="updateResults()">
+                <option value="">-- Elige una provincia --</option>
+                <optgroup label="Andalucía">
+                    <option value="almeria">Almería</option>
+                    <option value="cadiz">Cádiz</option>
+                    <option value="cordoba">Córdoba</option>
+                    <option value="granada">Granada</option>
+                    <option value="huelva">Huelva</option>
+                    <option value="jaen">Jaén</option>
+                    <option value="malaga">Málaga</option>
+                    <option value="sevilla">Sevilla</option>
+                </optgroup>
+                <optgroup label="Aragón">
+                    <option value="huesca">Huesca</option>
+                    <option value="teruel">Teruel</option>
+                    <option value="zaragoza">Zaragoza</option>
+                </optgroup>
+                <optgroup label="Asturias">
+                    <option value="asturias">Asturias</option>
+                </optgroup>
+                <optgroup label="Baleares">
+                    <option value="baleares">Baleares</option>
+                </optgroup>
+                <optgroup label="Canarias">
+                    <option value="laspalmas">Las Palmas</option>
+                    <option value="tenerife">Tenerife</option>
+                </optgroup>
+                <optgroup label="Cantabria">
+                    <option value="cantabria">Cantabria</option>
+                </optgroup>
+                <optgroup label="Castilla-La Mancha">
+                    <option value="albacete">Albacete</option>
+                    <option value="ciudadreal">Ciudad Real</option>
+                    <option value="cuenca">Cuenca</option>
+                    <option value="guadalajara">Guadalajara</option>
+                    <option value="toledo">Toledo</option>
+                </optgroup>
+                <optgroup label="Castilla y León">
+                    <option value="avila">Ávila</option>
+                    <option value="burgos">Burgos</option>
+                    <option value="leon">León</option>
+                    <option value="palencia">Palencia</option>
+                    <option value="salamanca">Salamanca</option>
+                    <option value="segovia">Segovia</option>
+                    <option value="soria">Soria</option>
+                    <option value="valladolid">Valladolid</option>
+                    <option value="zamora">Zamora</option>
+                </optgroup>
+                <optgroup label="Cataluña">
+                    <option value="barcelona">Barcelona</option>
+                    <option value="girona">Girona</option>
+                    <option value="lleida">Lleida</option>
+                    <option value="tarragona">Tarragona</option>
+                </optgroup>
+                <optgroup label="Comunidad Valenciana">
+                    <option value="castellon">Castellón</option>
+                    <option value="valencia">Valencia</option>
+                    <option value="alicante">Alicante</option>
+                </optgroup>
+                <optgroup label="Extremadura">
+                    <option value="badajoz">Badajoz</option>
+                    <option value="caceres">Cáceres</option>
+                </optgroup>
+                <optgroup label="Galicia">
+                    <option value="coruna">A Coruña</option>
+                    <option value="lugo">Lugo</option>
+                    <option value="ourense">Ourense</option>
+                    <option value="pontevedra">Pontevedra</option>
+                </optgroup>
+                <optgroup label="Madrid">
+                    <option value="madrid">Madrid</option>
+                </optgroup>
+                <optgroup label="Murcia">
+                    <option value="murcia">Murcia</option>
+                </optgroup>
+                <optgroup label="Navarra">
+                    <option value="navarra">Navarra</option>
+                </optgroup>
+                <optgroup label="País Vasco">
+                    <option value="alava">Álava</option>
+                    <option value="guipuzcoa">Guipúzcoa</option>
+                    <option value="bilbao">Vizcaya</option>
+                </optgroup>
+                <optgroup label="La Rioja">
+                    <option value="larioja">La Rioja</option>
+                </optgroup>
+            </select>
+        </div>
+
+        <div id="results" style="display: none;">
+            <div class="data-info">
+                📊 Proyección de encuestas electorales octubre 2026 | Fuentes: Su Momento, Sigma Dos, Data10, Ateneo del Dato
+                <span id="data-status-badge" class="data-status estimated">⚠ Encuestas octubre 2026</span>
+            </div>
+
+            <div class="results-section">
+                <div class="section-title">Situación actual</div>
+
+                <div class="bloc right">
+                    <div class="bloc-title">Bloque PP + Vox (Derecha + Ultraderecha)</div>
+                    <div class="bloc-stats">
+                        <div class="bloc-info">
+                            <div class="bloc-detail" id="right-detail">PP: 5 escaños | Vox: 2 escaños</div>
+                        </div>
+                        <div class="seats-badge" id="right-seats">7</div>
+                    </div>
+                </div>
+
+                <div class="bloc left">
+                    <div class="bloc-title">Bloque Centro-Izquierda</div>
+                    <div class="bloc-stats">
+                        <div class="bloc-info">
+                            <div class="bloc-detail" id="left-detail">PSOE: 13 | Sumar: 5 | ERC: 4 | CUP: 0</div>
+                        </div>
+                        <div class="seats-badge" id="left-seats">22</div>
+                    </div>
+                </div>
+
+                <div class="bloc independent" id="independent-bloc">
+                    <div class="bloc-title">Otros / Independientes</div>
+                    <div class="bloc-stats">
+                        <div class="bloc-info">
+                            <div class="bloc-detail" id="independent-detail">Otros partidos</div>
+                        </div>
+                        <div class="seats-badge" id="independent-seats">3</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="results-section">
+                <div class="section-title">¿Cuál partido gana el próximo escaño? (Ranking de probabilidad)</div>
+                <div id="ranking-container"></div>
+            </div>
+
+            <div class="explanation">
+                <strong>¿Cómo funciona esto?</strong><br>
+                Los escaños se distribuyen usando el <strong>sistema D'Hondt</strong>. Este ranking muestra cuál partido del bloque centro-izquierda tiene más probabilidades de conseguir el siguiente escaño. Los números indican cuántos votos nuevos necesitaría cada partido para alcanzar ese escaño.
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        let provinceData = {};
+        let dataLoadedDate = null;
+
+        const partyNameMap = {
+            'PSOE': 'PSOE',
+            'PP': 'PP',
+            'Vox': 'Vox',
+            'ERC': 'ERC',
+            'Sumar': 'Sumar',
+            'Junts': 'Junts',
+            'CUP': 'CUP',
+            'EAJ-PNV': 'EAJ-PNV',
+            'Compromís': 'Compromís',
+            'BNG': 'BNG',
+            'Otros': 'Otros'
+        };
+
+        function parseCSVData(csv) {
+            const lines = csv.trim().split('\n');
+            if (lines.length < 2) throw new Error('CSV vacío o mal formado');
+
+            const headers = lines[0].split(',').map(h => h.trim());
+            const data = {};
+
+            const provinciaIdx = headers.indexOf('Provincia');
+            const escañosIdx = headers.indexOf('Escaños');
+
+            if (provinciaIdx === -1 || escañosIdx === -1) {
+                throw new Error('Faltan columnas: Provincia, Escaños');
+            }
+
+            for (let i = 1; i < lines.length; i++) {
+                const values = lines[i].split(',').map(v => v.trim());
+                if (values.length < 3 || !values[provinciaIdx]) continue;
+
+                const provincia = values[provinciaIdx].toLowerCase();
+                const escaños = parseInt(values[escañosIdx]) || 0;
+                const parties = {};
+
+                for (let j = 0; j < headers.length; j++) {
+                    const header = headers[j];
+                    if (header.includes('_votos')) {
+                        const partyKey = header.replace('_votos', '');
+                        const votes = parseInt(values[j]) || 0;
+                        const seatsHeader = partyKey + '_escaños';
+                        const seatsIdx = headers.indexOf(seatsHeader);
+                        const seats = (seatsIdx !== -1) ? (parseInt(values[seatsIdx]) || 0) : 0;
+
+                        if (votes > 0 || seats > 0) {
+                            parties[partyKey.toLowerCase()] = {
+                                votes: votes,
+                                seats: seats,
+                                name: partyNameMap[partyKey] || partyKey
+                            };
+                        }
+                    }
+                }
+
+                data[provincia] = {
+                    seats: escaños,
+                    parties: parties
+                };
+            }
+
+            return data;
+        }
+
+        async function loadGoogleSheet() {
+            const statusDiv = document.getElementById('load-status');
+            const csvUrl = 'https://cdn.jsdelivr.net/gh/javijami/datos-electorales@main/datos_electorales.csv';
+
+            try {
+                const response = await fetch(csvUrl, { mode: 'cors' });
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const csv = await response.text();
+
+                provinceData = parseCSVData(csv);
+
+                const provinceCount = Object.keys(provinceData).length;
+                statusDiv.textContent = `✓ ${provinceCount} provincias cargadas`;
+                statusDiv.className = 'load-status success';
+                dataLoadedDate = new Date().toLocaleDateString('es-ES');
+
+                const badge = document.getElementById('data-status-badge');
+                if (badge) {
+                    badge.textContent = `✓ Google Sheets (${dataLoadedDate})`;
+                    badge.className = 'data-status verified';
+                }
+
+            } catch (error) {
+                statusDiv.textContent = '⚠ No se pudieron cargar los datos automáticamente';
+                statusDiv.className = 'load-status error';
+                console.error('Error cargando datos:', error);
+            }
+        }
+
+        const blocClassifications = {
+            barcelona: { left: ['psoe', 'sumar', 'erc', 'cup'], right: ['pp', 'vox'], independent: ['junts'] },
+            madrid: { left: ['psoe', 'sumar'], right: ['pp', 'vox'], independent: [] },
+            valencia: { left: ['psoe', 'sumar', 'compromis'], right: ['pp', 'vox'], independent: [] },
+            sevilla: { left: ['psoe', 'sumar'], right: ['pp', 'vox'], independent: [] },
+            malaga: { left: ['psoe', 'sumar'], right: ['pp', 'vox'], independent: [] },
+            bilbao: { left: ['psoe', 'sumar'], right: ['pp', 'vox'], independent: ['eajpnv'] },
+            alicante: { left: ['psoe', 'sumar'], right: ['pp', 'vox'], independent: [] },
+            cordoba: { left: ['psoe', 'sumar'], right: ['pp', 'vox'], independent: [] },
+            jaen: { left: ['psoe', 'sumar'], right: ['pp', 'vox'], independent: [] },
+            salamanca: { left: ['psoe', 'sumar'], right: ['pp', 'vox'], independent: [] },
+            almeria: { left: ['psoe', 'sumar'], right: ['pp', 'vox'], independent: [] },
+            cadiz: { left: ['psoe', 'sumar'], right: ['pp', 'vox'], independent: [] },
+            granada: { left: ['psoe', 'sumar'], right: ['pp', 'vox'], independent: [] },
+            huelva: { left: ['psoe', 'sumar'], right: ['pp', 'vox'], independent: [] },
+            huesca: { left: ['psoe', 'sumar'], right: ['pp', 'vox'], independent: [] },
+            teruel: { left: ['psoe', 'sumar'], right: ['pp', 'vox'], independent: [] },
+            zaragoza: { left: ['psoe', 'sumar'], right: ['pp', 'vox'], independent: [] },
+            asturias: { left: ['psoe', 'sumar'], right: ['pp', 'vox'], independent: [] },
+            baleares: { left: ['psoe', 'sumar', 'menorca'], right: ['pp', 'vox'], independent: [] },
+            laspalmas: { left: ['psoe', 'sumar', 'cc'], right: ['pp', 'vox'], independent: [] },
+            tenerife: { left: ['psoe', 'sumar', 'cc'], right: ['pp', 'vox'], independent: [] },
+            albacete: { left: ['psoe', 'sumar'], right: ['pp', 'vox'], independent: [] },
+            ciudadreal: { left: ['psoe', 'sumar'], right: ['pp', 'vox'], independent: [] },
+            cuenca: { left: ['psoe', 'sumar'], right: ['pp', 'vox'], independent: [] },
+            guadalajara: { left: ['psoe', 'sumar'], right: ['pp', 'vox'], independent: [] },
+            toledo: { left: ['psoe', 'sumar'], right: ['pp', 'vox'], independent: [] },
+            avila: { left: ['psoe', 'sumar'], right: ['pp', 'vox'], independent: [] },
+            burgos: { left: ['psoe', 'sumar'], right: ['pp', 'vox'], independent: [] },
+            leon: { left: ['psoe', 'sumar'], right: ['pp', 'vox'], independent: [] },
+            palencia: { left: ['psoe', 'sumar'], right: ['pp', 'vox'], independent: [] },
+            segovia: { left: ['psoe', 'sumar'], right: ['pp', 'vox'], independent: [] },
+            soria: { left: ['psoe', 'sumar'], right: ['pp', 'vox'], independent: [] },
+            valladolid: { left: ['psoe', 'sumar'], right: ['pp', 'vox'], independent: [] },
+            zamora: { left: ['psoe', 'sumar'], right: ['pp', 'vox'], independent: [] },
+            girona: { left: ['psoe', 'sumar', 'erc'], right: ['pp', 'vox'], independent: ['junts'] },
+            lleida: { left: ['psoe', 'sumar', 'erc'], right: ['pp', 'vox'], independent: ['junts'] },
+            tarragona: { left: ['psoe', 'sumar', 'erc'], right: ['pp', 'vox'], independent: ['junts'] },
+            castellon: { left: ['psoe', 'sumar', 'compromis'], right: ['pp', 'vox'], independent: [] },
+            badajoz: { left: ['psoe', 'sumar'], right: ['pp', 'vox'], independent: [] },
+            caceres: { left: ['psoe', 'sumar'], right: ['pp', 'vox'], independent: [] },
+            coruna: { left: ['psoe', 'sumar', 'bng'], right: ['pp', 'vox'], independent: [] },
+            lugo: { left: ['psoe', 'sumar', 'bng'], right: ['pp', 'vox'], independent: [] },
+            ourense: { left: ['psoe', 'sumar', 'bng'], right: ['pp', 'vox'], independent: [] },
+            pontevedra: { left: ['psoe', 'sumar', 'bng'], right: ['pp', 'vox'], independent: [] },
+            murcia: { left: ['psoe', 'sumar'], right: ['pp', 'vox'], independent: [] },
+            navarra: { left: ['psoe', 'sumar', 'geroa'], right: ['pp', 'vox'], independent: [] },
+            alava: { left: ['psoe', 'sumar'], right: ['pp', 'vox'], independent: ['eajpnv'] },
+            guipuzcoa: { left: ['psoe', 'sumar'], right: ['pp', 'vox'], independent: ['eajpnv', 'bildu'] },
+            larioja: { left: ['psoe', 'sumar'], right: ['pp', 'vox'], independent: [] },
+            cantabria: { left: ['psoe', 'sumar'], right: ['pp', 'vox'], independent: [] }
+        };
+
+        function calculateDHondtQuotient(votes, seats) {
+            return votes / (seats + 1);
+        }
+
+        function updateResults() {
+            const province = document.getElementById('province').value;
+            const resultsDiv = document.getElementById('results');
+
+            if (!province || !provinceData[province]) {
+                resultsDiv.style.display = 'none';
+                return;
+            }
+
+            const provinceName = province.charAt(0).toUpperCase() + province.slice(1);
+            const data = provinceData[province];
+            const classification = blocClassifications[province] || { left: [], right: [], independent: [] };
+
+            let rightVotes = 0, rightSeats = 0, leftVotes = 0, leftSeats = 0, independentVotes = 0, independentSeats = 0;
+
+            for (const [partyKey, partyData] of Object.entries(data.parties)) {
+                if (classification.left.includes(partyKey)) {
+                    leftVotes += partyData.votes;
+                    leftSeats += partyData.seats;
+                } else if (classification.right.includes(partyKey)) {
+                    rightVotes += partyData.votes;
+                    rightSeats += partyData.seats;
+                } else {
+                    independentVotes += partyData.votes;
+                    independentSeats += partyData.seats;
+                }
+            }
+
+            document.getElementById('right-detail').textContent = Object.entries(data.parties)
+                .filter(([k]) => classification.right.includes(k))
+                .map(([, v]) => `${v.name}: ${v.seats}`)
+                .join(' | ');
+            document.getElementById('right-seats').textContent = rightSeats;
+
+            document.getElementById('left-detail').textContent = Object.entries(data.parties)
+                .filter(([k]) => classification.left.includes(k))
+                .map(([, v]) => `${v.name}: ${v.seats}`)
+                .join(' | ');
+            document.getElementById('left-seats').textContent = leftSeats;
+
+            document.getElementById('independent-detail').textContent = Object.entries(data.parties)
+                .filter(([k]) => !classification.left.includes(k) && !classification.right.includes(k))
+                .map(([, v]) => `${v.name}: ${v.seats}`)
+                .join(' | ') || 'Ninguno';
+            document.getElementById('independent-seats').textContent = independentSeats;
+
+            const ranking = Object.entries(data.parties)
+                .filter(([partyKey]) => classification.left.includes(partyKey))
+                .map(([partyKey, partyData]) => {
+                    const quotient = calculateDHondtQuotient(partyData.votes, partyData.seats);
+                    return { party: partyData.name, quotient, votes: partyData.votes, seats: partyData.seats, key: partyKey };
+                })
+                .sort((a, b) => b.quotient - a.quotient);
+
+            const maxQuotient = ranking.length > 0 ? ranking[0].quotient : 0;
+            const seatsAvailable = data.seats - (rightSeats + leftSeats + independentSeats);
+
+            const rankingHTML = ranking.map((item, idx) => {
+                const isLeader = idx === 0;
+
+                // Calcular votos necesarios para superar al siguiente en línea
+                let votesNeeded = 0;
+                if (idx < ranking.length - 1) {
+                    // Votos necesarios para superar al siguiente
+                    const nextQuotient = ranking[idx + 1].quotient;
+                    const votesNeededToMatch = Math.ceil(nextQuotient * (item.seats + 1)) - item.votes;
+                    votesNeeded = Math.max(0, votesNeededToMatch);
+                } else {
+                    // Si es el último, mostrar votos para mantener posición
+                    votesNeeded = Math.max(0, Math.ceil(item.quotient * (item.seats + 2)) - item.votes);
+                }
+
+                return `
+                    <div class="ranking-item ${isLeader ? 'leader' : ''}">
+                        <div style="display: flex; align-items: center; flex: 1;">
+                            <span class="ranking-position">${idx + 1}</span>
+                            <div class="ranking-party">
+                                <div class="ranking-party-name">
+                                    ${item.party}
+                                    ${isLeader ? '<span class="leader-badge">Próximo escaño</span>' : ''}
+                                </div>
+                                <div class="ranking-party-quotient">Cociente D'Hondt: ${item.quotient.toFixed(0)}</div>
+                            </div>
+                        </div>
+                        <div class="ranking-votes">
+                            <div class="votes-needed">${votesNeeded.toLocaleString('es-ES')}</div>
+                            <div class="votes-label">votos para superar</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('ranking-container').innerHTML = rankingHTML;
+            resultsDiv.style.display = 'block';
+        }
+
+        window.addEventListener('load', function() {
+            loadGoogleSheet();
+        });
+    </script>
+</body>
+</html>
